@@ -102,20 +102,19 @@ const App: React.FC = () => {
         return results.slice(0, 8);
     };
 
-    // Stable input handler that uses refs
-    const handleInputEvent = useCallback((e: Event) => {
+    // Unified suggestion update logic
+    const updateSuggestions = useCallback((target: HTMLElement) => {
         const { preferences } = stateRef.current;
+        console.log('[Shortcodes] updateSuggestions called, enabled:', preferences.enabled, 'showAutocomplete:', preferences.showAutocomplete);
 
-        // Check if extension is enabled
         if (!preferences.enabled) {
+            console.log('[Shortcodes] Extension disabled, returning');
             return;
         }
 
-        const target = e.target as HTMLElement;
         activeElementRef.current = target;
-
         const { pattern, position } = replacerRef.current.detectPattern(target);
-        console.log('[Shortcodes] handleInput - pattern:', pattern);
+        console.log('[Shortcodes] Detected pattern:', pattern);
 
         if (!pattern || pattern.length < 2) {
             setVisible(false);
@@ -124,13 +123,13 @@ const App: React.FC = () => {
             return;
         }
 
-        // Check if autocomplete should be shown
         if (!preferences.showAutocomplete) {
+            console.log('[Shortcodes] Autocomplete disabled in preferences');
             return;
         }
 
         const matches = doSearch(pattern).slice(0, preferences.maxSuggestions);
-        console.log('[Shortcodes] Found', matches.length, 'matches');
+        console.log('[Shortcodes] Found', matches.length, 'matches for', pattern);
 
         if (matches.length === 0) {
             setVisible(false);
@@ -143,7 +142,17 @@ const App: React.FC = () => {
         setQuery(pattern);
         setSelectedIndex(0);
         setVisible(true);
-    }, []); // No deps - uses refs for fresh state
+        console.log('[Shortcodes] Showing dropdown with', matches.length, 'items');
+    }, []);
+
+    // Stable input handler - use requestAnimationFrame to ensure DOM is updated
+    const handleInputEvent = useCallback((e: Event) => {
+        const target = e.target as HTMLElement;
+        // Use requestAnimationFrame for reliable DOM sync (fixes Cmd+Delete, Cmd+A+Delete, etc.)
+        requestAnimationFrame(() => {
+            updateSuggestions(target);
+        });
+    }, [updateSuggestions]);
 
     // Stable keydown handler
     const handleKeyDownEvent = useCallback((e: KeyboardEvent) => {
@@ -153,6 +162,16 @@ const App: React.FC = () => {
         // Check if extension is enabled
         if (!preferences.enabled) {
             console.log('[Shortcodes] Extension disabled, skipping keydown');
+            return;
+        }
+
+        // Handle Cmd+Delete/Backspace (Mac) or Ctrl+Delete/Backspace (Windows/Linux)
+        // These may not fire input events reliably
+        if ((e.metaKey || e.ctrlKey) && (e.key === 'Backspace' || e.key === 'Delete')) {
+            // Schedule update after the deletion happens
+            setTimeout(() => {
+                requestAnimationFrame(() => updateSuggestions(target));
+            }, 10);
             return;
         }
 
@@ -188,7 +207,7 @@ const App: React.FC = () => {
                 }
             }
         }
-    }, []); // No deps - uses refs
+    }, [updateSuggestions]); // Added updateSuggestions dependency
 
     const handleFocusOutEvent = useCallback(() => {
         setTimeout(() => {
@@ -197,18 +216,13 @@ const App: React.FC = () => {
         }, 200);
     }, []);
 
-    // Handle keyup for backspace detection
+    // Handle keyup for any potential text modification
     const handleKeyUpEvent = useCallback((e: KeyboardEvent) => {
-        if (e.key === 'Backspace' || e.key === 'Delete') {
-            const target = e.target as HTMLElement;
-            const { pattern } = replacerRef.current.detectPattern(target);
-            console.log('[Shortcodes] Keyup - pattern after backspace:', pattern);
-            if (!pattern || pattern.length < 2) {
-                setVisible(false);
-                setItems([]);
-            }
+        // Re-check on Backspace, Delete, or if Cmd/Ctrl was held (for Cmd+Delete, Ctrl+Backspace, etc.)
+        if (e.key === 'Backspace' || e.key === 'Delete' || e.metaKey || e.ctrlKey) {
+            setTimeout(() => updateSuggestions(e.target as HTMLElement), 0);
         }
-    }, []);
+    }, [updateSuggestions]);
 
     // Handle autocomplete selection
     const handleSelect = useCallback((item: AutocompleteItem) => {

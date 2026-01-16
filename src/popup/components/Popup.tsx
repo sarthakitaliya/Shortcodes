@@ -93,7 +93,7 @@ export const Popup: React.FC = () => {
                 ) : (
                     <div className="alias-list">
                         {filteredAliases.map(alias => (
-                            <div key={alias.shortcode} className="alias-item">
+                            <div key={alias.shortcode} className="alias-item group">
                                 <div className="alias-preview">
                                     {alias.type === 'emoji' ? alias.value :
                                         alias.type === 'link' ? '🔗' :
@@ -149,7 +149,7 @@ export const Popup: React.FC = () => {
 
             <div className="alias-list">
                 {emojiResults.map(({ shortcode, emoji }) => (
-                    <div key={shortcode} className="alias-item">
+                    <div key={shortcode} className="alias-item group">
                         <div className="alias-preview">{emoji}</div>
                         <div className="alias-info">
                             <div className="alias-shortcode">{shortcode}</div>
@@ -163,6 +163,7 @@ export const Popup: React.FC = () => {
 
     const renderSettingsTab = () => (
         <div className="space-y-3">
+            <div className="section-title">Global</div>
             <div className="toggle-container">
                 <div className="toggle-info">
                     <div className="toggle-label">Enable Extension</div>
@@ -185,6 +186,7 @@ export const Popup: React.FC = () => {
                 />
             </div>
 
+            <div className="section-title">Preferences</div>
             <div className="form-group">
                 <label className="form-label">Max Suggestions</label>
                 <select
@@ -199,11 +201,6 @@ export const Popup: React.FC = () => {
                 </select>
             </div>
 
-            <div className="mt-6 p-3 bg-gray-50 rounded-xl text-center">
-                <div className="text-2xl mb-1">⚡</div>
-                <div className="text-sm font-medium text-gray-700">Shortcodes v1.0.0</div>
-                <div className="text-xs text-gray-400">Type :shortcode: anywhere to expand</div>
-            </div>
         </div>
     );
 
@@ -212,7 +209,6 @@ export const Popup: React.FC = () => {
             {/* Header */}
             <div className="popup-header">
                 <div className="popup-title">
-                    <span>⚡</span>
                     <span>Shortcodes</span>
                 </div>
                 <div className="popup-subtitle">Emoji & text expansion everywhere</div>
