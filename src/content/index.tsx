@@ -152,17 +152,22 @@ const App: React.FC = () => {
 
         // Check if extension is enabled
         if (!preferences.enabled) {
+            console.log('[Shortcodes] Extension disabled, skipping keydown');
             return;
         }
 
         if (e.key === ' ' || e.key === 'Enter' || e.key === 'Tab') {
             const { pattern } = replacerRef.current.detectPattern(target);
+            console.log('[Shortcodes] Keydown trigger - pattern:', pattern);
 
             if (pattern) {
                 const fullShortcode = pattern.endsWith(':') ? pattern : `${pattern}:`;
+                console.log('[Shortcodes] Looking for shortcode:', fullShortcode);
 
                 // Check emoji
                 const emoji = getEmoji(fullShortcode);
+                console.log('[Shortcodes] Emoji lookup result:', emoji);
+
                 if (emoji) {
                     e.preventDefault();
                     replacerRef.current.replacePattern(target, emojiOverrides[fullShortcode] || emoji);

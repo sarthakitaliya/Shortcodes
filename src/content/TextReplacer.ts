@@ -3,8 +3,9 @@
  * Core engine for detecting and replacing shortcode patterns
  */
 
-// Regex to detect :shortcode pattern (not escaped with \)
-const SHORTCODE_PATTERN = /(?<!\\):([a-zA-Z0-9_+-]+)$/;
+// Regex to detect :shortcode or :shortcode: pattern (not escaped with \)
+// The trailing colon is optional
+const SHORTCODE_PATTERN = /(?<!\\):([a-zA-Z0-9_+-]+):?$/;
 const ESCAPE_PATTERN = /\\:/g;
 
 export interface DetectionResult {
