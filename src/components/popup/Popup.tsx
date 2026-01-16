@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { FileText, ClipboardList, Pencil, Trash2 } from 'lucide-react';
 import { storage } from '../../lib/storage';
 import { CustomAlias, UserPreferences, DEFAULT_PREFERENCES } from '../../lib/aliasTypes';
 import { EMOJI_MAP, searchEmojis } from '../../data/emojis';
 import { AliasForm } from './AliasForm';
+import { Favicon } from '../Favicon';
 
 type Tab = 'aliases' | 'emojis' | 'settings';
 
@@ -96,8 +98,8 @@ export const Popup: React.FC = () => {
                             <div key={alias.shortcode} className="alias-item group">
                                 <div className="alias-preview">
                                     {alias.type === 'emoji' ? alias.value :
-                                        alias.type === 'link' ? '🔗' :
-                                            alias.type === 'template' ? '📋' : '📝'}
+                                        alias.type === 'link' ? <Favicon url={alias.value} /> :
+                                            alias.type === 'template' ? <ClipboardList size={18} /> : <FileText size={18} />}
                                 </div>
                                 <div className="alias-info">
                                     <div className="alias-shortcode">{alias.shortcode}</div>
@@ -112,13 +114,13 @@ export const Popup: React.FC = () => {
                                             setShowForm(true);
                                         }}
                                     >
-                                        ✏️
+                                        <Pencil size={14} />
                                     </button>
                                     <button
                                         className="alias-btn delete"
                                         onClick={() => handleDeleteAlias(alias.shortcode)}
                                     >
-                                        🗑️
+                                        <Trash2 size={14} />
                                     </button>
                                 </div>
                             </div>

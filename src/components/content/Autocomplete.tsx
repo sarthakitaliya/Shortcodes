@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useCallback } from 'react';
+import { FileText, ClipboardList } from 'lucide-react';
 import { AliasType } from '../../lib/aliasTypes';
+import { Favicon } from '../Favicon';
 
 interface AutocompleteItem {
     shortcode: string;
@@ -17,14 +19,6 @@ interface AutocompleteProps {
     onClose: () => void;
     onNavigate: (direction: 'up' | 'down') => void;
 }
-
-const TYPE_ICONS: Record<AliasType, string> = {
-    emoji: '😀',
-    text: '📝',
-    link: '🔗',
-    file: '📎',
-    template: '📋',
-};
 
 export const Autocomplete: React.FC<AutocompleteProps> = ({
     items,
@@ -131,7 +125,9 @@ export const Autocomplete: React.FC<AutocompleteProps> = ({
                     >
                         {/* Preview */}
                         <div className="sc-autocomplete-emoji">
-                            {item.type === 'emoji' ? item.value : TYPE_ICONS[item.type]}
+                            {item.type === 'emoji' ? item.value :
+                                item.type === 'link' ? <Favicon url={item.value} /> :
+                                    item.type === 'template' ? <ClipboardList size={18} /> : <FileText size={18} />}
                         </div>
 
                         {/* Info */}

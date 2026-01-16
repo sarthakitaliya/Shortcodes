@@ -5,7 +5,7 @@
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Autocomplete } from './components/Autocomplete';
+import { Autocomplete } from '../components/content/Autocomplete';
 import { searchEmojis, getEmoji } from '../data/emojis';
 import { storage } from '../lib/storage';
 import { AliasType, CustomAlias, UserPreferences, DEFAULT_PREFERENCES } from '../lib/aliasTypes';
