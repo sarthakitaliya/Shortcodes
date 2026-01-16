@@ -259,7 +259,7 @@ const App: React.FC = () => {
 
         const attachToInputsIn = (root: Element) => {
             const inputs = root.querySelectorAll<HTMLElement>(
-                'input[type="text"], input[type="search"], input:not([type]), textarea, [contenteditable="true"]'
+                'input[type="text"], input[type="search"], input:not([type]), textarea, [contenteditable="true"], [role="textbox"]'
             );
             inputs.forEach(attachToElement);
         };
@@ -268,18 +268,30 @@ const App: React.FC = () => {
 
         const observer = new MutationObserver((mutations) => {
             for (const mutation of mutations) {
-                for (const node of mutation.addedNodes) {
-                    if (node instanceof HTMLElement) {
-                        attachToInputsIn(node);
-                        if (node.matches?.('input[type="text"], input[type="search"], input:not([type]), textarea, [contenteditable="true"]')) {
-                            attachToElement(node);
+                if (mutation.type === 'childList') {
+                    for (const node of mutation.addedNodes) {
+                        if (node instanceof HTMLElement) {
+                            attachToInputsIn(node);
+                            if (node.matches?.('input[type="text"], input[type="search"], input:not([type]), textarea, [contenteditable="true"], [role="textbox"]')) {
+                                attachToElement(node);
+                            }
                         }
+                    }
+                } else if (mutation.type === 'attributes') {
+                    const target = mutation.target as HTMLElement;
+                    if (target.matches?.('input[type="text"], input[type="search"], input:not([type]), textarea, [contenteditable="true"], [role="textbox"]')) {
+                        attachToElement(target);
                     }
                 }
             }
         });
 
-        observer.observe(document.body, { childList: true, subtree: true });
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['contenteditable', 'role']
+        });
         console.log('[Shortcodes] Event listeners attached');
 
         return () => {

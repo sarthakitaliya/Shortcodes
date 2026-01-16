@@ -78,7 +78,7 @@ export const Autocomplete: React.FC<AutocompleteProps> = ({
     // Calculate position ensuring dropdown stays in viewport
     const adjustedPosition = {
         x: Math.min(position.x, window.innerWidth - 380),
-        y: Math.min(position.y, window.innerHeight - 340 + window.scrollY),
+        y: Math.min(position.y, window.innerHeight - 340),
     };
 
     if (items.length === 0) {

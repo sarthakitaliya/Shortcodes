@@ -73,7 +73,7 @@ export class TextReplacer {
         const rect = range.getBoundingClientRect();
         return {
             pattern: `:${match[1]}`,
-            position: { x: rect.left, y: rect.bottom + window.scrollY },
+            position: { x: rect.left, y: rect.bottom },
         };
     }
 
@@ -124,7 +124,7 @@ export class TextReplacer {
 
         return {
             x: inputRect.left + (cursorRect.left - mirror.getBoundingClientRect().left),
-            y: inputRect.top + (cursorRect.top - mirror.getBoundingClientRect().top) + 20 + window.scrollY,
+            y: inputRect.top + (cursorRect.top - mirror.getBoundingClientRect().top) + 20,
         };
     }
 
