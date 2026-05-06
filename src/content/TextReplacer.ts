@@ -6,6 +6,8 @@
 // Regex to detect :shortcode or :shortcode: pattern (not escaped with \)
 // The trailing colon is optional
 const SHORTCODE_PATTERN = /(?<!\\):([a-zA-Z0-9_+-]+):?$/;
+// Also detect just ":" to show all aliases
+const JUST_COLON_PATTERN = /(?<!\\):$/;
 const ESCAPE_PATTERN = /\\:/g;
 
 export interface DetectionResult {
@@ -41,6 +43,13 @@ export class TextReplacer {
         if (cursorPos === null) return nullResult;
 
         const textBeforeCursor = input.value.substring(0, cursorPos);
+
+        // First check for just ":" (show all aliases)
+        if (JUST_COLON_PATTERN.test(textBeforeCursor)) {
+            const position = this.getInputCaretPosition(input);
+            return { pattern: ':', position };
+        }
+
         const match = textBeforeCursor.match(SHORTCODE_PATTERN);
 
         if (!match) return nullResult;
@@ -67,17 +76,37 @@ export class TextReplacer {
         preCaretRange.setEnd(range.startContainer, range.startOffset);
         const textBeforeCursor = preCaretRange.toString();
 
+        // First check for just ":" (show all aliases)
+        if (JUST_COLON_PATTERN.test(textBeforeCursor)) {
+            const rect = range.getBoundingClientRect();
+            // Fallback to element rect if range rect seems off (e.g., 0 or negative)
+            const elementRect = element.getBoundingClientRect();
+            const x = rect.width > 0 && rect.left > 0 ? rect.left : elementRect.left;
+            const y = rect.height > 0 ? rect.bottom : elementRect.bottom;
+            return { pattern: ':', position: { x, y } };
+        }
+
         const match = textBeforeCursor.match(SHORTCODE_PATTERN);
         if (!match) return nullResult;
 
         const rect = range.getBoundingClientRect();
+        const elementRect = element.getBoundingClientRect();
+        const x = rect.width > 0 && rect.left > 0 ? rect.left : elementRect.left;
+        const y = rect.height > 0 ? rect.bottom : elementRect.bottom;
         return {
             pattern: `:${match[1]}`,
-            position: { x: rect.left, y: rect.bottom },
+            position: { x, y },
         };
     }
 
     private getInputCaretPosition(input: HTMLInputElement | HTMLTextAreaElement): { x: number; y: number } {
+        const inputRect = input.getBoundingClientRect();
+        
+        // For inputs at the very beginning or with issues, use a fallback
+        if (inputRect.width === 0 || inputRect.height === 0) {
+            return { x: inputRect.left, y: inputRect.bottom };
+        }
+
         // Create a mirror element to measure caret position
         const mirror = document.createElement('div');
         const computed = getComputedStyle(input);
@@ -117,14 +146,14 @@ export class TextReplacer {
 
         document.body.appendChild(mirror);
 
-        const inputRect = input.getBoundingClientRect();
         const cursorRect = cursorSpan.getBoundingClientRect();
+        const mirrorRect = mirror.getBoundingClientRect();
 
         document.body.removeChild(mirror);
 
         return {
-            x: inputRect.left + (cursorRect.left - mirror.getBoundingClientRect().left),
-            y: inputRect.top + (cursorRect.top - mirror.getBoundingClientRect().top) + 20,
+            x: inputRect.left + (cursorRect.left - mirrorRect.left),
+            y: inputRect.top + (cursorRect.top - mirrorRect.top) + 20,
         };
     }
 
@@ -160,6 +189,25 @@ export class TextReplacer {
         if (cursorPos === null) return;
 
         const textBeforeCursor = input.value.substring(0, cursorPos);
+        
+        // Handle single ":" case - replace the colon with the selected value
+        if (JUST_COLON_PATTERN.test(textBeforeCursor)) {
+            const newValue = input.value.substring(0, cursorPos - 1) + value + input.value.substring(cursorPos);
+            
+            const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+                input instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype,
+                'value'
+            )!.set!;
+            nativeInputValueSetter.call(input, newValue);
+            
+            const event = new Event('input', { bubbles: true });
+            input.dispatchEvent(event);
+            
+            const newCursorPos = cursorPos - 1 + value.length;
+            input.setSelectionRange(newCursorPos, newCursorPos);
+            return;
+        }
+
         const match = textBeforeCursor.match(SHORTCODE_PATTERN);
 
         if (!match) return;
@@ -197,6 +245,31 @@ export class TextReplacer {
         preCaretRange.setEnd(range.startContainer, range.startOffset);
         const textBeforeCursor = preCaretRange.toString();
 
+        // Handle single ":" case - replace the colon with the selected value
+        if (JUST_COLON_PATTERN.test(textBeforeCursor)) {
+            const startNode = range.startContainer;
+            const startOffset = range.startOffset;
+
+            if (startNode.nodeType === Node.TEXT_NODE) {
+                const textNode = startNode as Text;
+                const beforeText = textNode.textContent!.substring(0, startOffset - 1);
+                const afterText = textNode.textContent!.substring(startOffset);
+
+                const newTextNode = document.createTextNode(beforeText + value + afterText);
+                textNode.parentNode?.replaceChild(newTextNode, textNode);
+
+                const newRange = document.createRange();
+                const cursorPos = beforeText.length + value.length;
+                newRange.setStart(newTextNode, cursorPos);
+                newRange.collapse(true);
+                selection.removeAllRanges();
+                selection.addRange(newRange);
+            }
+
+            element.dispatchEvent(new Event('input', { bubbles: true }));
+            return;
+        }
+
         const match = textBeforeCursor.match(SHORTCODE_PATTERN);
         if (!match) return;
 
@@ -209,14 +282,20 @@ export class TextReplacer {
 
         if (startNode.nodeType === Node.TEXT_NODE) {
             const textNode = startNode as Text;
-            const newContent = textNode.textContent!.substring(0, startOffset - patternLength) +
-                value +
-                textNode.textContent!.substring(startOffset);
-            textNode.textContent = newContent;
+            // Use textContent but preserve newlines by replacing \n with actual line breaks
+            const beforeText = textNode.textContent!.substring(0, startOffset - patternLength);
+            const afterText = textNode.textContent!.substring(startOffset);
+
+            // For contenteditable, we need to insert as text node to preserve formatting
+            const newTextNode = document.createTextNode(beforeText + value + afterText);
+
+            // Replace the old node with the new one
+            textNode.parentNode?.replaceChild(newTextNode, textNode);
 
             // Set cursor after replacement
             const newRange = document.createRange();
-            newRange.setStart(textNode, startOffset - patternLength + value.length);
+            const cursorPos = beforeText.length + value.length;
+            newRange.setStart(newTextNode, cursorPos);
             newRange.collapse(true);
             selection.removeAllRanges();
             selection.addRange(newRange);

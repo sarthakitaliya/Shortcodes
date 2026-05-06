@@ -1,7 +1,12 @@
 /**
  * Alias types supported by the extension
  */
-export type AliasType = 'emoji' | 'text' | 'link' | 'file' | 'template';
+export type AliasType = 'emoji' | 'text' | 'link' | 'file' | 'template' | 'variable';
+
+/**
+ * Supported variable placeholders
+ */
+export type VariableType = 'date' | 'time' | 'datetime' | 'clipboard' | 'year' | 'month' | 'day';
 
 /**
  * Base alias structure
@@ -54,6 +59,8 @@ export interface UserPreferences {
     triggerKeys: ('space' | 'enter' | 'tab')[];
     /** Maximum autocomplete suggestions */
     maxSuggestions: number;
+    /** Theme mode: 'light' | 'dark' | 'system' */
+    theme: 'light' | 'dark' | 'system';
 }
 
 /**
@@ -66,6 +73,8 @@ export interface StorageSchema {
     emojiOverrides: Record<string, string>;
     /** User preferences */
     preferences: UserPreferences;
+    /** Recently used shortcodes */
+    recentAliases: string[];
 }
 
 /**
@@ -76,4 +85,5 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
     showAutocomplete: true,
     triggerKeys: ['space', 'enter', 'tab'],
     maxSuggestions: 8,
+    theme: 'system',
 };

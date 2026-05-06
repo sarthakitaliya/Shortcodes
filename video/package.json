@@ -1,0 +1,16 @@
+{
+  "name": "shortcodes-video",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@remotion/cli": "^4.0.457",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "remotion": "^4.0.457"
+  },
+  "scripts": {
+    "preview": "remotion preview src/index.tsx",
+    "render": "remotion render src/index.tsx ShortcodesPromo out/shortcodes-promo.mp4",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  }
+}

@@ -134,15 +134,55 @@ class Storage {
     }
 
     /**
+     * Get recent aliases (shortcodes)
+     */
+    async getRecentAliases(): Promise<string[]> {
+        try {
+            const result = await chrome.storage.local.get('recentAliases');
+            return result.recentAliases || [];
+        } catch {
+            return [];
+        }
+    }
+
+    /**
+     * Add a shortcode to recent aliases
+     */
+    async addToRecentAliases(shortcode: string): Promise<string[]> {
+        try {
+            const recent = await this.getRecentAliases();
+
+            // Remove if already exists (to move to front)
+            const filtered = recent.filter(s => s !== shortcode);
+
+            // Add to front
+            const updated = [shortcode, ...filtered].slice(0, 10);
+
+            await chrome.storage.local.set({ recentAliases: updated });
+            return updated;
+        } catch {
+            return [];
+        }
+    }
+
+    /**
+     * Clear recent aliases
+     */
+    async clearRecentAliases(): Promise<void> {
+        await chrome.storage.local.set({ recentAliases: [] });
+    }
+
+    /**
      * Get all storage data
      */
     async getAll(): Promise<StorageSchema> {
-        const [customAliases, emojiOverrides, preferences] = await Promise.all([
+        const [customAliases, emojiOverrides, preferences, recentAliases] = await Promise.all([
             this.getCustomAliases(),
             this.getEmojiOverrides(),
             this.getPreferences(),
+            this.getRecentAliases(),
         ]);
-        return { customAliases, emojiOverrides, preferences };
+        return { customAliases, emojiOverrides, preferences, recentAliases };
     }
 
     /**

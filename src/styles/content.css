@@ -4,32 +4,37 @@
 
 /* Extension-specific reset to avoid conflicts with host page */
 #shortcodes-autocomplete-root {
-  all: initial;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 14px;
-  line-height: 1.5;
-  color: #111827;
-  box-sizing: border-box;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  all: initial !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+  color: #111827 !important;
+  box-sizing: border-box !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
 }
 
 #shortcodes-autocomplete-root *,
 #shortcodes-autocomplete-root *::before,
 #shortcodes-autocomplete-root *::after {
-  box-sizing: inherit;
+  box-sizing: inherit !important;
+  font-family: inherit !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+  color: inherit !important;
 }
 
 /* Autocomplete dropdown styles */
 .sc-autocomplete {
   @apply fixed z-[2147483647] bg-white rounded-xl shadow-xl ring-1 ring-black/5;
   @apply animate-slide-up transform transition-all duration-200 ease-out;
-  min-width: 280px;
-  max-width: 360px;
+  min-width: 320px;
+  max-width: 400px;
   max-height: 320px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  overflow-x: hidden;
 }
 
 .sc-autocomplete-header {
@@ -38,11 +43,15 @@
 }
 
 .sc-autocomplete-query {
-  @apply text-[11px] font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-1;
+  @apply text-[10px] font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-1;
 }
 
 .sc-autocomplete-query span {
   @apply truncate max-w-[180px] inline-block align-bottom text-gray-900;
+}
+
+.sc-autocomplete-query-text {
+  @apply font-semibold;
 }
 
 .sc-autocomplete-list {
@@ -97,11 +106,11 @@
 }
 
 .sc-autocomplete-shortcode {
-  @apply text-[13px] font-medium text-gray-900 truncate leading-tight;
+  @apply text-[12px] font-medium text-gray-900 truncate leading-tight;
 }
 
 .sc-autocomplete-type {
-  @apply text-[11px] text-gray-400 font-normal leading-tight mt-0.5;
+  @apply text-[10px] text-gray-400 font-normal leading-tight mt-0.5;
 }
 
 /* Badges - Minimalist Style */
@@ -124,4 +133,190 @@
 
 .sc-autocomplete-key {
   @apply px-1 py-0.5 bg-white border border-gray-200 rounded shadow-sm text-gray-500 font-sans text-[9px] min-w-[18px] text-center;
+}
+
+/* Clipboard Preview styles */
+.sc-clipboard-preview {
+  @apply fixed z-[2147483647] bg-white rounded-xl shadow-xl ring-1 ring-black/5;
+  @apply animate-slide-up transform transition-all duration-200 ease-out;
+  min-width: 280px;
+  max-width: 340px;
+  max-height: 180px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sc-clipboard-preview-header {
+  @apply px-3 py-2 border-b border-gray-100 bg-white flex items-center gap-2 text-sm font-semibold text-gray-700;
+  flex-shrink: 0;
+}
+
+.sc-clipboard-preview-content {
+  @apply px-3 py-2 overflow-y-auto flex-1 min-h-0;
+  max-height: 80px;
+}
+
+.sc-clipboard-preview-text {
+  @apply text-xs text-gray-600 whitespace-pre-wrap break-words font-mono leading-relaxed;
+  word-break: break-word;
+}
+
+.sc-clipboard-preview-empty {
+  @apply text-sm text-gray-400 italic text-center py-2;
+}
+
+.sc-clipboard-preview-actions {
+  @apply px-3 py-2 border-t border-gray-100 flex items-center justify-end gap-2;
+  flex-shrink: 0;
+}
+
+.sc-clipboard-preview-btn {
+  @apply flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150;
+}
+
+.sc-clipboard-preview-btn.cancel {
+  @apply text-gray-500 hover:bg-gray-100 hover:text-gray-700;
+}
+
+.sc-clipboard-preview-btn.confirm {
+  @apply bg-blue-500 text-white hover:bg-blue-600 shadow-sm;
+}
+
+.sc-clipboard-preview-btn.confirm:disabled {
+  @apply bg-gray-200 text-gray-400 cursor-not-allowed hover:bg-gray-200;
+}
+
+.sc-clipboard-preview-footer {
+  @apply px-3 py-1.5 border-t border-gray-50 bg-gray-50/50 flex items-center justify-end gap-3 text-[10px] font-medium text-gray-400;
+  flex-shrink: 0;
+}
+
+.sc-clipboard-preview-hint {
+  @apply flex items-center gap-1;
+}
+
+.sc-clipboard-preview-key {
+  @apply px-1 py-0.5 bg-white border border-gray-200 rounded shadow-sm text-gray-500 font-sans text-[9px] min-w-[18px] text-center;
+}
+
+/* Dark Theme - Improved */
+.sc-autocomplete.dark {
+  background: #0f172a !important;
+  border: 1px solid #1e293b;
+  color: #e2e8f0 !important;
+  box-shadow: 0 20px 40px -8px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.sc-autocomplete.dark .sc-autocomplete-header {
+  background: #0f172a !important;
+  border-bottom: 1px solid #1e293b;
+}
+
+.sc-autocomplete.dark .sc-autocomplete-query {
+  color: #64748b !important;
+}
+
+.sc-autocomplete.dark .sc-autocomplete-query span {
+  color: #e2e8f0 !important;
+}
+
+.sc-autocomplete.dark .sc-autocomplete-query-text {
+  color: #f8fafc !important;
+}
+
+.sc-autocomplete.dark .sc-autocomplete-list::-webkit-scrollbar-thumb {
+  background-color: #334155;
+}
+
+.sc-autocomplete.dark .sc-autocomplete-item:hover,
+.sc-autocomplete.dark .sc-autocomplete-item.selected {
+  background: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+.sc-autocomplete.dark .sc-autocomplete-item:hover .sc-autocomplete-shortcode,
+.sc-autocomplete.dark .sc-autocomplete-item.selected .sc-autocomplete-shortcode {
+  color: #f8fafc !important;
+}
+
+.sc-autocomplete.dark .sc-autocomplete-emoji {
+  background: #1e293b !important;
+  border-color: #334155;
+  color: #f8fafc !important;
+}
+
+.sc-autocomplete.dark .sc-autocomplete-shortcode {
+  color: #e2e8f0 !important;
+}
+
+.sc-autocomplete.dark .sc-autocomplete-type {
+  color: #94a3b8 !important;
+}
+
+.sc-autocomplete.dark .sc-autocomplete-type-badge {
+  background: #1e293b !important;
+  border-color: #334155;
+  color: #cbd5e1 !important;
+}
+
+.sc-autocomplete.dark .sc-autocomplete-empty {
+  color: #cbd5e1 !important;
+}
+
+.sc-autocomplete.dark .sc-autocomplete-footer {
+  background: #0f172a !important;
+  border-top: 1px solid #1e293b;
+  color: #94a3b8 !important;
+}
+
+.sc-autocomplete.dark .sc-autocomplete-key {
+  background: #1e293b !important;
+  border-color: #334155;
+  color: #e2e8f0 !important;
+}
+
+/* Clipboard Preview Dark Theme - Improved */
+.sc-clipboard-preview.dark {
+  background: #0f172a !important;
+  border: 1px solid #1e293b;
+  box-shadow: 0 20px 40px -8px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.sc-clipboard-preview.dark .sc-clipboard-preview-header {
+  background: #0f172a !important;
+  border-bottom: 1px solid #1e293b;
+  color: #e2e8f0 !important;
+}
+
+.sc-clipboard-preview.dark .sc-clipboard-preview-content {
+  background: #0f172a !important;
+}
+
+.sc-clipboard-preview.dark .sc-clipboard-preview-text {
+  color: #cbd5e1 !important;
+}
+
+.sc-clipboard-preview.dark .sc-clipboard-preview-empty {
+  color: #475569 !important;
+}
+
+.sc-clipboard-preview.dark .sc-clipboard-preview-footer {
+  background: #0f172a !important;
+  border-top: 1px solid #1e293b;
+  color: #475569 !important;
+}
+
+.sc-clipboard-preview.dark .sc-clipboard-preview-actions {
+  background: #0f172a !important;
+  border-top: 1px solid #1e293b;
+}
+
+.sc-clipboard-preview.dark .sc-clipboard-preview-btn.cancel {
+  color: #64748b !important;
+}
+
+.sc-clipboard-preview.dark .sc-clipboard-preview-btn.cancel:hover {
+  background: #1e293b !important;
+  color: #e2e8f0 !important;
 }

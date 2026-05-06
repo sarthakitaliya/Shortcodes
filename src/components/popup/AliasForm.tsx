@@ -71,19 +71,34 @@ export const AliasForm: React.FC<AliasFormProps> = ({ initialValue, onSave, onCa
                     <option value="text">Text</option>
                     <option value="link">Link / URL</option>
                     <option value="template">Template</option>
+                    <option value="variable">Variable</option>
                     <option value="emoji">Custom Emoji</option>
                 </select>
+                {type === 'variable' && (
+                    <div className="text-xs text-gray-400 mt-2">
+                        <div className="font-medium text-gray-300 mb-1">Available Variables:</div>
+                        <div className="grid grid-cols-2 gap-1">
+                            <span><code>:date:</code> → 2026-03-03</span>
+                            <span><code>:time:</code> → 10:30 AM</span>
+                            <span><code>:datetime:</code> → date + time</span>
+                            <span><code>:clipboard:</code> → clipboard content</span>
+                            <span><code>:year:</code> → 2026</span>
+                            <span><code>:month:</code> → March</span>
+                            <span><code>:day:</code> → 3</span>
+                        </div>
+                    </div>
+                )}
             </div>
 
             <div className="form-group">
                 <label className="form-label">
-                    {type === 'link' ? 'URL' : type === 'template' ? 'Template Content' : 'Replacement Value'}
+                    {type === 'link' ? 'URL' : type === 'template' ? 'Template Content' : type === 'variable' ? 'Variables to include' : 'Replacement Value'}
                 </label>
-                {type === 'template' ? (
+                {type === 'template' || type === 'variable' ? (
                     <textarea
                         className="form-textarea"
                         rows={4}
-                        placeholder="Enter your template text..."
+                        placeholder={type === 'variable' ? "e.g., Today is :date: at :time:" : "Enter your template text..."}
                         value={value}
                         onChange={(e) => setValue(e.target.value)}
                     />

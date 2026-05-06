@@ -1,30 +1,48 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, ClipboardList, Pencil, Trash2 } from 'lucide-react';
+import { FileText, ClipboardList, Pencil, Trash2, Clock, Sun, Moon } from 'lucide-react';
 import { storage } from '../../lib/storage';
 import { CustomAlias, UserPreferences, DEFAULT_PREFERENCES } from '../../lib/aliasTypes';
-import { EMOJI_MAP, searchEmojis } from '../../data/emojis';
+import { EMOJI_MAP, searchEmojis, getEmoji } from '../../data/emojis';
 import { AliasForm } from './AliasForm';
 import { Favicon } from '../Favicon';
 
-type Tab = 'aliases' | 'emojis' | 'settings';
+type Tab = 'aliases' | 'recent' | 'emojis' | 'settings';
 
 export const Popup: React.FC = () => {
     const [activeTab, setActiveTab] = useState<Tab>('aliases');
     const [customAliases, setCustomAliases] = useState<CustomAlias[]>([]);
+    const [recentShortcodes, setRecentShortcodes] = useState<string[]>([]);
     const [preferences, setPreferences] = useState<UserPreferences>(DEFAULT_PREFERENCES);
     const [showForm, setShowForm] = useState(false);
     const [editingAlias, setEditingAlias] = useState<CustomAlias | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
 
+    // Determine effective theme
+    const getEffectiveTheme = () => {
+        if (preferences.theme === 'system') {
+            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        return preferences.theme;
+    };
+    const effectiveTheme = getEffectiveTheme();
+
+    // Toggle theme
+    const toggleTheme = async () => {
+        const newTheme = effectiveTheme === 'dark' ? 'light' : 'dark';
+        await handlePreferenceChange('theme', newTheme);
+    };
+
     // Load data
     useEffect(() => {
         const loadData = async () => {
-            const [aliases, prefs] = await Promise.all([
+            const [aliases, prefs, recent] = await Promise.all([
                 storage.getCustomAliases(),
                 storage.getPreferences(),
+                storage.getRecentAliases(),
             ]);
             setCustomAliases(aliases);
             setPreferences(prefs);
+            setRecentShortcodes(recent);
         };
         loadData();
     }, []);
@@ -99,7 +117,7 @@ export const Popup: React.FC = () => {
                                 <div className="alias-preview">
                                     {alias.type === 'emoji' ? alias.value :
                                         alias.type === 'link' ? <Favicon url={alias.value} /> :
-                                            alias.type === 'template' ? <ClipboardList size={18} /> : <FileText size={18} />}
+                                            alias.type === 'template' ? <ClipboardList size={18} /> : alias.type === 'variable' ? <Clock size={18} /> : <FileText size={18} />}
                                 </div>
                                 <div className="alias-info">
                                     <div className="alias-shortcode">{alias.shortcode}</div>
@@ -163,6 +181,76 @@ export const Popup: React.FC = () => {
         </>
     );
 
+    // Get recent aliases with their full data
+    const getRecentAliases = () => {
+        return recentShortcodes.map(shortcode => {
+            // Check custom aliases first
+            const custom = customAliases.find(a => a.shortcode === shortcode);
+            if (custom) return custom;
+            // Check variable aliases (like :date:, :time:, etc.)
+            if (shortcode.startsWith(':') && shortcode.endsWith(':')) {
+                const description = getVariableDescription(shortcode);
+                if (description) return { shortcode, value: '', type: 'variable' as const, isDefault: true, description };
+            }
+            // Check emojis
+            const emoji = getEmoji(shortcode);
+            if (emoji) return { shortcode, value: emoji, type: 'emoji' as const, isDefault: true };
+            return null;
+        }).filter(Boolean) as (CustomAlias | { shortcode: string; value: string; type: 'emoji' | 'variable'; isDefault: true; description?: string })[];
+    };
+
+    // Get description for variable aliases
+    const getVariableDescription = (shortcode: string): string | null => {
+        const descriptions: Record<string, string> = {
+            ':date:': 'Current date (YYYY-MM-DD)',
+            ':time:': 'Current time',
+            ':datetime:': 'Current date and time',
+            ':year:': 'Current year',
+            ':month:': 'Current month name',
+            ':day:': 'Current day',
+        };
+        return descriptions[shortcode] || null;
+    };
+
+    const renderRecentTab = () => {
+        const recentAliases = getRecentAliases();
+
+        if (recentAliases.length === 0) {
+            return (
+                <div className="empty-state">
+                    <div className="empty-icon"><Clock size={32} /></div>
+                    <div className="empty-title">No recent aliases</div>
+                    <div className="empty-desc">Use some aliases to see them here!</div>
+                </div>
+            );
+        }
+
+        return (
+            <div className="alias-list">
+                {recentAliases.map((alias) => (
+                    <div key={alias.shortcode} className="alias-item group">
+                        <div className="alias-preview">
+                            {alias.type === 'emoji' ? alias.value :
+                                alias.type === 'link' ? <Favicon url={alias.value} /> :
+                                    alias.type === 'template' ? <ClipboardList size={18} /> :
+                                        alias.type === 'variable' ? <Clock size={18} /> : <FileText size={18} />}
+                        </div>
+                        <div className="alias-info">
+                            <div className="alias-shortcode">{alias.shortcode}</div>
+                            <div className="alias-value">
+                                {alias.type === 'variable' ? alias.description :
+                                    alias.value ? `${alias.value.substring(0, 40)}...` : ''}
+                            </div>
+                        </div>
+                        <span className={`type-badge ${alias.type}`}>
+                                {alias.type === 'variable' ? 'variable' : alias.isDefault ? 'default' : alias.type}
+                            </span>
+                    </div>
+                ))}
+            </div>
+        );
+    };
+
     const renderSettingsTab = () => (
         <div className="space-y-3">
             <div className="section-title">Global</div>
@@ -207,13 +295,20 @@ export const Popup: React.FC = () => {
     );
 
     return (
-        <div className="popup-container">
+        <div className={`popup-container ${effectiveTheme}`} data-theme={effectiveTheme}>
             {/* Header */}
             <div className="popup-header">
                 <div className="popup-title">
                     <span>Shortcodes</span>
                 </div>
                 <div className="popup-subtitle">Emoji & text expansion everywhere</div>
+                <button
+                    className="theme-toggle"
+                    onClick={toggleTheme}
+                    title={`Switch to ${effectiveTheme === 'dark' ? 'light' : 'dark'} mode`}
+                >
+                    {effectiveTheme === 'dark' ? <Moon size={16} /> : <Sun size={16} />}
+                </button>
             </div>
 
             {/* Tabs */}
@@ -223,6 +318,12 @@ export const Popup: React.FC = () => {
                     onClick={() => setActiveTab('aliases')}
                 >
                     Custom
+                </div>
+                <div
+                    className={`popup-tab ${activeTab === 'recent' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('recent')}
+                >
+                    Recent
                 </div>
                 <div
                     className={`popup-tab ${activeTab === 'emojis' ? 'active' : ''}`}
@@ -241,6 +342,7 @@ export const Popup: React.FC = () => {
             {/* Content */}
             <div className="popup-content">
                 {activeTab === 'aliases' && renderAliasesTab()}
+                {activeTab === 'recent' && renderRecentTab()}
                 {activeTab === 'emojis' && renderEmojisTab()}
                 {activeTab === 'settings' && renderSettingsTab()}
             </div>

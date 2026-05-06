@@ -18,6 +18,7 @@ interface AutocompleteProps {
     onSelect: (item: AutocompleteItem) => void;
     onClose: () => void;
     onNavigate: (direction: 'up' | 'down') => void;
+    theme?: 'light' | 'dark';
 }
 
 export const Autocomplete: React.FC<AutocompleteProps> = ({
@@ -28,6 +29,7 @@ export const Autocomplete: React.FC<AutocompleteProps> = ({
     onSelect,
     onClose,
     onNavigate,
+    theme = 'light',
 }) => {
     const listRef = useRef<HTMLDivElement>(null);
     const selectedRef = useRef<HTMLDivElement>(null);
@@ -81,17 +83,45 @@ export const Autocomplete: React.FC<AutocompleteProps> = ({
         y: Math.min(position.y, window.innerHeight - 340),
     };
 
+    const isDark = theme === 'dark';
+    const surfaceStyle = isDark
+        ? {
+            background: '#0f172a',
+            border: '1px solid #1e293b',
+            color: '#e2e8f0',
+            WebkitTextFillColor: '#e2e8f0',
+            colorScheme: 'dark' as const,
+        }
+        : {
+            color: '#111827',
+            WebkitTextFillColor: '#111827',
+            colorScheme: 'light' as const,
+        };
+
     if (items.length === 0) {
         return (
             <div
-                className="sc-autocomplete"
+                className={`sc-autocomplete ${theme}`}
                 style={{
                     left: `${adjustedPosition.x}px`,
                     top: `${adjustedPosition.y}px`,
+                    ...surfaceStyle,
                 }}
             >
-                <div className="sc-autocomplete-empty">
-                    No matches for <span className="font-semibold text-gray-600">{query}</span>
+                <div
+                    className="sc-autocomplete-empty"
+                    style={{
+                        color: isDark ? '#cbd5e1' : '#9ca3af',
+                        WebkitTextFillColor: isDark ? '#cbd5e1' : '#9ca3af',
+                    }}
+                >
+                    No matches for <span
+                        className="sc-autocomplete-query-text"
+                        style={{
+                            color: isDark ? '#f8fafc' : '#4b5563',
+                            WebkitTextFillColor: isDark ? '#f8fafc' : '#4b5563',
+                        }}
+                    >{query}</span>
                 </div>
             </div>
         );
@@ -99,17 +129,36 @@ export const Autocomplete: React.FC<AutocompleteProps> = ({
 
     return (
         <div
-            className="sc-autocomplete"
+            className={`sc-autocomplete ${theme}`}
             style={{
                 left: `${adjustedPosition.x}px`,
                 top: `${adjustedPosition.y}px`,
+                ...surfaceStyle,
             }}
             onClick={(e) => e.stopPropagation()}
         >
             {/* Header */}
-            <div className="sc-autocomplete-header">
-                <span className="sc-autocomplete-query">
-                    Suggestions for <span className="font-semibold text-gray-700">{query}</span>
+            <div
+                className="sc-autocomplete-header"
+                style={{
+                    background: isDark ? '#0f172a' : '#ffffff',
+                    borderBottomColor: isDark ? '#1e293b' : '#f3f4f6',
+                }}
+            >
+                <span
+                    className="sc-autocomplete-query"
+                    style={{
+                        color: isDark ? '#94a3b8' : '#9ca3af',
+                        WebkitTextFillColor: isDark ? '#94a3b8' : '#9ca3af',
+                    }}
+                >
+                    Suggestions for <span
+                        className="sc-autocomplete-query-text"
+                        style={{
+                            color: isDark ? '#f8fafc' : '#374151',
+                            WebkitTextFillColor: isDark ? '#f8fafc' : '#374151',
+                        }}
+                    >{query}</span>
                 </span>
             </div>
 
@@ -120,11 +169,26 @@ export const Autocomplete: React.FC<AutocompleteProps> = ({
                         key={item.shortcode}
                         ref={index === selectedIndex ? selectedRef : null}
                         className={`sc-autocomplete-item ${index === selectedIndex ? 'selected' : ''}`}
+                        style={{
+                            background: index === selectedIndex
+                                ? (isDark ? '#1e293b' : '#f3f4f6')
+                                : 'transparent',
+                            color: isDark ? '#e2e8f0' : '#111827',
+                            WebkitTextFillColor: isDark ? '#e2e8f0' : '#111827',
+                        }}
                         onClick={() => onSelect(item)}
                         onMouseEnter={() => { }} // Could add hover selection
                     >
                         {/* Preview */}
-                        <div className="sc-autocomplete-emoji">
+                        <div
+                            className="sc-autocomplete-emoji"
+                            style={{
+                                background: isDark ? '#1e293b' : '#ffffff',
+                                borderColor: isDark ? '#334155' : '#e5e7eb',
+                                color: isDark ? '#f8fafc' : '#374151',
+                                WebkitTextFillColor: isDark ? '#f8fafc' : '#374151',
+                            }}
+                        >
                             {item.type === 'emoji' ? item.value :
                                 item.type === 'link' ? <Favicon url={item.value} /> :
                                     item.type === 'template' ? <ClipboardList size={18} /> : <FileText size={18} />}
@@ -132,14 +196,38 @@ export const Autocomplete: React.FC<AutocompleteProps> = ({
 
                         {/* Info */}
                         <div className="sc-autocomplete-info">
-                            <div className="sc-autocomplete-shortcode">{item.shortcode}</div>
+                            <div
+                                className="sc-autocomplete-shortcode"
+                                style={{
+                                    color: isDark ? '#e2e8f0' : '#111827',
+                                    WebkitTextFillColor: isDark ? '#e2e8f0' : '#111827',
+                                }}
+                            >
+                                {item.shortcode}
+                            </div>
                             {item.description && (
-                                <div className="sc-autocomplete-type">{item.description}</div>
+                                <div
+                                    className="sc-autocomplete-type"
+                                    style={{
+                                        color: isDark ? '#94a3b8' : '#9ca3af',
+                                        WebkitTextFillColor: isDark ? '#94a3b8' : '#9ca3af',
+                                    }}
+                                >
+                                    {item.description}
+                                </div>
                             )}
                         </div>
 
                         {/* Type Badge */}
-                        <span className={`sc-autocomplete-type-badge ${item.type}`}>
+                        <span
+                            className={`sc-autocomplete-type-badge ${item.type}`}
+                            style={{
+                                background: isDark ? '#1e293b' : '#f9fafb',
+                                borderColor: isDark ? '#334155' : '#f3f4f6',
+                                color: isDark ? '#cbd5e1' : '#9ca3af',
+                                WebkitTextFillColor: isDark ? '#cbd5e1' : '#9ca3af',
+                            }}
+                        >
                             {item.type}
                         </span>
                     </div>
@@ -147,17 +235,55 @@ export const Autocomplete: React.FC<AutocompleteProps> = ({
             </div>
 
             {/* Footer */}
-            <div className="sc-autocomplete-footer">
+            <div
+                className="sc-autocomplete-footer"
+                style={{
+                    background: isDark ? '#0f172a' : 'rgba(249, 250, 251, 0.5)',
+                    borderTopColor: isDark ? '#1e293b' : '#f3f4f6',
+                    color: isDark ? '#94a3b8' : '#9ca3af',
+                    WebkitTextFillColor: isDark ? '#94a3b8' : '#9ca3af',
+                }}
+            >
                 <div className="sc-autocomplete-hint">
-                    <span className="sc-autocomplete-key">↑↓</span>
+                    <span
+                        className="sc-autocomplete-key"
+                        style={{
+                            background: isDark ? '#1e293b' : '#ffffff',
+                            borderColor: isDark ? '#334155' : '#e5e7eb',
+                            color: isDark ? '#e2e8f0' : '#6b7280',
+                            WebkitTextFillColor: isDark ? '#e2e8f0' : '#6b7280',
+                        }}
+                    >
+                        ↑↓
+                    </span>
                     <span>Navigate</span>
                 </div>
                 <div className="sc-autocomplete-hint">
-                    <span className="sc-autocomplete-key">Enter</span>
+                    <span
+                        className="sc-autocomplete-key"
+                        style={{
+                            background: isDark ? '#1e293b' : '#ffffff',
+                            borderColor: isDark ? '#334155' : '#e5e7eb',
+                            color: isDark ? '#e2e8f0' : '#6b7280',
+                            WebkitTextFillColor: isDark ? '#e2e8f0' : '#6b7280',
+                        }}
+                    >
+                        Enter
+                    </span>
                     <span>Select</span>
                 </div>
                 <div className="sc-autocomplete-hint">
-                    <span className="sc-autocomplete-key">Esc</span>
+                    <span
+                        className="sc-autocomplete-key"
+                        style={{
+                            background: isDark ? '#1e293b' : '#ffffff',
+                            borderColor: isDark ? '#334155' : '#e5e7eb',
+                            color: isDark ? '#e2e8f0' : '#6b7280',
+                            WebkitTextFillColor: isDark ? '#e2e8f0' : '#6b7280',
+                        }}
+                    >
+                        Esc
+                    </span>
                     <span>Close</span>
                 </div>
             </div>
